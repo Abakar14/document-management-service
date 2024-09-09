@@ -1,0 +1,14 @@
+spring:
+    application:
+        name: document-management-service
+
+server:
+    port: 8085
+    servlet:
+        context-path: /dss/api/v1/
+
+file:
+    storage:
+        upload:
+            location: /home/abakar/programming/git_repos/dss/storage
+        max-size: 10MB
