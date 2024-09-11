@@ -1,6 +1,8 @@
 package com.bytmasoft.dss.service;
 
+import com.bytmasoft.dss.dto.DocumentDto;
 import org.springframework.core.io.Resource;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -10,21 +12,33 @@ import java.util.List;
 public interface FileStorageService {
 //    String init();
 
-    String saveFile(MultipartFile file, String serviceType, String fileType) throws IOException;
 
-    Resource loadFileAsResource(String fileName);
+    void init();
 
-    Path load(String filename);
+    DocumentDto saveFile(MultipartFile file, String serviceType, String fileTypes) throws IOException;
 
-    List<String> saveFiles(List<MultipartFile> files, String serviceType, String fileType);
+    List<DocumentDto> saveFiles(List<MultipartFile> files, String serviceType, String fileType);
 
-    String updateDocument(String documentId, MultipartFile file);
+    DocumentDto saveFile(MultipartFile file, String... fileTypes) throws IOException;
 
-    Resource getDocument(String documentId);
+    List<DocumentDto> saveComplexFiles(List<MultipartFile> files, String... fileTypes);
+
+    DocumentDto updateDocument(String documentName, MultipartFile file) throws IOException;
+
+    Resource loadFileAsResource(String fileName) throws IOException;
+
+    Path load(String filename) throws IOException;
+
+    Resource getDocument(String documentName) throws IOException;
+
+    ResponseEntity<Resource> getDocumentByName(String documentName) throws IOException;
 
     List<Resource> loadAll();
 
     boolean deleteAll();
 
 
+    String deleteDocumentByName(String documentId);
+
+    String deleteAllDocument();
 }

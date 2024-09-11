@@ -1,11 +1,51 @@
 spring:
     application:
         name: document-management-service
+    datasource:
+        driver-class-name: org.postgresql.Driver
+        hikari:
+            connection-timeout: 20000
+            maximum-pool-size: 5
+        password: ${datasource.password}
+        url: jdbc:postgresql://${datasource.url}:${datasource.port}/${datasource.name}
+        username: ${datasource.user}
+    jpa:
+        hibernate:
+            ddl-auto: update
+    properties:
+        hibernate:
+            dialect: org.hibernate.dialect.PostgreSQLDialect
+    servlet:
+        multipart:
+            enabled: true
+    main:
+        allow-bean-definition-overriding: true
 
 server:
     port: 8085
     servlet:
         context-path: /dss/api/v1/
+
+
+logging:
+    level:
+        org:
+            hibernate:
+                sql: DEBUG
+                type: TRACE
+                type.descriptor.sql: TRACE
+# JWT Properties expiration and refresh times (in milliseconds)
+# Secret key
+jwt:
+    secret:
+        key: 8KvVu4Bn2KwBNX1MdnXY6VaRVLekVxurk3aaJxnzdCuZL6AHEL0EnnAOYLZtHWUr
+    access:
+        token:
+            expiration: 1800000 # 30 min in milliseconds for token expiration time
+    refresh:
+        token:
+            expiration: 604800000    # 7 days in milliseconds
+
 
 file:
     storage:
