@@ -1,6 +1,14 @@
+server:
+    port: 8085
+    servlet:
+        context-path: /dss/api/v1/
+eureka:
+    client:
+        service-url:
+            defaultZone: http://localhost:8761/eureka/
 spring:
     application:
-        name: document-management-service
+        name: dm-service
     datasource:
         driver-class-name: org.postgresql.Driver
         hikari:
@@ -21,10 +29,7 @@ spring:
     main:
         allow-bean-definition-overriding: true
 
-server:
-    port: 8085
-    servlet:
-        context-path: /dss/api/v1/
+
 
 
 logging:

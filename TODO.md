@@ -14,6 +14,10 @@
 - [ ] create a security library to use for JWT token
 
 ### Done ✓
+- [x] added eureka Client
+- [x] added to gateway
+- [x] Test from postman
+- [x] added download by filename 
 - [x] add endpoint /upload (Normal one file to the first level hierarchic ) 
 - [x] add endpoint /uploads (hier you can send different many files to same folder middel complex hierarchic)
 - [x] add endpoint /uploads/properties (very Spezial endpoint very complex hierarchic) 

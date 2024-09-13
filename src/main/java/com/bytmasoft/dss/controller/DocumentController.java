@@ -70,8 +70,8 @@ public interface DocumentController {
                     content = @Content(schema = @Schema(type = "string", format = "binary"))),
             @ApiResponse(responseCode = "404", description = "File not found")
     })
-    @GetMapping(value = "/downloand/{documentId}")
-    ResponseEntity<Resource> downloadDocument(@RequestParam("documentId") String documentName) throws Exception;
+    @GetMapping(value = "/download")
+    ResponseEntity<Resource> downloadDocument(@RequestParam("documentName") String documentName) throws Exception;
 
     ResponseEntity<List<Resource>> getAllDocuments() throws Exception;
 
