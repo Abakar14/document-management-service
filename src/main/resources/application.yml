@@ -26,6 +26,7 @@ spring:
     servlet:
         multipart:
             enabled: true
+# we must use it to allow the application overriding the lib common and security
     main:
         allow-bean-definition-overriding: true
 
