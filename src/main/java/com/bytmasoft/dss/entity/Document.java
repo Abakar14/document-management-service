@@ -1,5 +1,6 @@
 package com.bytmasoft.dss.entity;
 
+import com.bytmasoft.dss.enums.DocumentType;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -27,14 +28,19 @@ public class Document implements Serializable {
     @Column(unique = true, nullable = false)
     private String fileName;
     private String filePath;
+    private Integer version;
 
+    @Enumerated(EnumType.STRING)
+    private DocumentType documentType;
+
+    private Long ownerId;
     private String insertedBy;
     private String updatedBy;
 
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     @CreationTimestamp
     @Temporal(TemporalType.TIMESTAMP)
-    private Timestamp addedOn;
+    private Timestamp uploadDate;
 
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     @UpdateTimestamp

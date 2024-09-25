@@ -21,3 +21,14 @@
 3. BFF forwards the data to the Document Management Service (DMS) along with the report format (PDF, Excel, etc.).
 4. DMS generates the report using JasperReports and stores the file.
 5. BFF provides the download link or returns the report file to the Frontend.
+
+### File storage strategy 
+    /documents
+        /birth_certificates
+            /userId_123_birth_certificate.pdf
+        /exam_certificates
+            /userId_456_exam_certificate.pdf
+        /books
+            /book_title_author.pdf
+        /courses
+            /courseId_789_script.pdf

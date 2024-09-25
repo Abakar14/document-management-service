@@ -1,6 +1,7 @@
 package com.bytmasoft.dss.service;
 
 import com.bytmasoft.dss.dto.DocumentDto;
+import com.bytmasoft.dss.enums.DocumentType;
 import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
@@ -41,4 +42,6 @@ public interface FileStorageService {
     String deleteDocumentByName(String documentId);
 
     String deleteAllDocument();
+
+    String storeFile(MultipartFile file, DocumentType documentType, Long ownerId, int newVersion);
 }
