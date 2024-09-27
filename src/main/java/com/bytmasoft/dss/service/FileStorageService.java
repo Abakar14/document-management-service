@@ -1,47 +1,61 @@
 package com.bytmasoft.dss.service;
 
-import com.bytmasoft.dss.dto.DocumentDto;
+import com.bytmasoft.dss.dto.DocumentDTO;
+import com.bytmasoft.dss.entity.Document;
 import com.bytmasoft.dss.enums.DocumentType;
 import org.springframework.core.io.Resource;
-import org.springframework.http.ResponseEntity;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.List;
+import java.util.Optional;
 
 public interface FileStorageService {
-//    String init();
-
 
     void init();
 
-    DocumentDto saveFile(MultipartFile file, String serviceType, String fileTypes) throws IOException;
+    Optional<Document> getDocumentById(Long documentId);
 
-    List<DocumentDto> saveFiles(List<MultipartFile> files, String serviceType, String fileType);
+    Optional<Document> getDocumentByVersion(Long ownerId, DocumentType documentType,  Integer version);
 
-    DocumentDto saveFile(MultipartFile file, String... fileTypes) throws IOException;
+    List<DocumentDTO> getAllDocumentVersions(Long ownerId, DocumentType documentType, Integer version);
 
-    List<DocumentDto> saveComplexFiles(List<MultipartFile> files, String... fileTypes);
+    List<DocumentDTO> getAllDocumentOwner(Long ownerId);
 
-    DocumentDto updateDocument(String documentName, MultipartFile file) throws IOException;
+    Page<DocumentDTO> getAllDocumentOwner(List<Long> ownerIDs, Pageable pageable);
 
-    Resource loadFileAsResource(String fileName) throws IOException;
+    List<DocumentDTO> uploadDocuments(List<MultipartFile> files, DocumentType documentType, Long ownerId) throws IOException;
 
-    Path load(String filename) throws IOException;
+    DocumentDTO uploadDocument(MultipartFile file, DocumentType documentType, Long ownerId) throws IOException;
 
-    Resource getDocument(String documentName) throws IOException;
+    DocumentDTO updateDocument(Long documentId, Optional<DocumentType> documentType, Optional<Long> ownerId ,Optional<MultipartFile> file) throws IOException;
 
-    ResponseEntity<Resource> getDocumentByName(String documentName) throws IOException;
+    Resource downloadDocument(Long documentId) throws IOException;
 
-    List<Resource> loadAll();
+    Page<DocumentDTO> getAllDocuments(Long ownerId, DocumentType documentType, Integer version, Pageable pageable);
 
-    boolean deleteAll();
+    Resource downloadDocument(Long ownerId, DocumentType documentType, Integer version) throws IOException;
+
+    List<Resource> downloadAllDocumentsAsResource();
+
+    Boolean deleteDocumentById(Long documentId);
+
+    boolean deleteAllDocuments();
+
+    Page<DocumentDTO> getAllDocumentsOwners(List<Long> ownerIDs, DocumentType documentType, Integer version, Pageable pageable);
 
 
-    String deleteDocumentByName(String documentId);
+    //    Path load(String filename) throws IOException;
+//    Resource loadFileAsResource(String fileName) throws IOException;
 
-    String deleteAllDocument();
+//    DocumentDTO saveFile(MultipartFile file, String serviceType, String fileTypes) throws IOException;
 
-    String storeFile(MultipartFile file, DocumentType documentType, Long ownerId, int newVersion);
+//    List<DocumentDTO> saveFiles(List<MultipartFile> files, String serviceType, String fileType);
+
+//    DocumentDTO saveFile(MultipartFile file, String... fileTypes) throws IOException;
+
+//    List<DocumentDTO> saveComplexFiles(List<MultipartFile> files, String... fileTypes);
+
 }

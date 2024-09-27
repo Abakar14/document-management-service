@@ -27,6 +27,7 @@ public class Document implements Serializable {
 
     @Column(unique = true, nullable = false)
     private String fileName;
+    private String originalFileName;
     private String filePath;
     private Integer version;
 
@@ -37,10 +38,12 @@ public class Document implements Serializable {
     private String insertedBy;
     private String updatedBy;
 
+    private boolean deleted = false;
+
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     @CreationTimestamp
     @Temporal(TemporalType.TIMESTAMP)
-    private Timestamp uploadDate;
+    private Timestamp uploadedOn;
 
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     @UpdateTimestamp

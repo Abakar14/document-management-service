@@ -1,16 +1,31 @@
 package com.bytmasoft.dss.repository;
 
+import com.bytmasoft.dss.dto.DocumentDTO;
 import com.bytmasoft.dss.entity.Document;
 import com.bytmasoft.dss.enums.DocumentType;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
 
-public interface DocumentRepository extends JpaRepository<Document, Long> {
+public interface DocumentRepository extends JpaRepository<Document, Long>, JpaSpecificationExecutor<Document> {
 
     Optional<Document> findByfileName(String fileName);
+
     List<Document> findByOwnerId(Long ownerId);
+
     List<Document> findByDocumentType(DocumentType documentType);
+
+    Optional<Document> findByOwnerIdAndDocumentTypeAndVersion(Long ownerId, DocumentType documentType, Integer version);
+
     List<Document> findByOwnerIdAndDocumentType(Long ownerId, DocumentType documentType);
+
+    Page<Document> findByOwnerIdIn(List<Long> ownerIDs, Pageable pageable);
+   /* @Query("select d from Document d where d.ownerId in: ids")
+    Page<Document> findByOwnerId(@Param("ids") List<Long> ownerIDs, Pageable pageable);*/
 }

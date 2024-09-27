@@ -20,9 +20,11 @@ spring:
     jpa:
         hibernate:
             ddl-auto: update
+            format_sql: true
     properties:
         hibernate:
             dialect: org.hibernate.dialect.PostgreSQLDialect
+        show-sql: true
     servlet:
         multipart:
             enabled: true
@@ -30,8 +32,10 @@ spring:
     main:
         allow-bean-definition-overriding: true
 
-
-
+springdoc:
+  swagger-ui:
+      tags-sorter: alpha
+      operations-sorter: alpha
 
 logging:
     level:
@@ -58,3 +62,9 @@ file:
         upload:
             location: /home/abakar/programming/git_repos/dss/storage
         max-size: 10MB
+        document:
+            supportedFileTypes:
+                - pdf
+                - docx
+                - jpg
+                - png

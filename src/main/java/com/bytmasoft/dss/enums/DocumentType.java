@@ -9,4 +9,5 @@ public enum DocumentType {
     SCRIPT,
     COURSE_MATERIAL,
     PROFILE_PICTURE,
+    OTHER_DOCUMENT,
 }
