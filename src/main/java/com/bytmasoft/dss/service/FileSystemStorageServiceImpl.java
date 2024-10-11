@@ -1,14 +1,16 @@
 package com.bytmasoft.dss.service;
 
+import com.bytmasoft.common.exception.StorageException;
+import com.bytmasoft.common.exception.StorageFileNotFoundException;
 import com.bytmasoft.dss.config.StorageProperties;
 import com.bytmasoft.dss.dto.DocumentDTO;
 import com.bytmasoft.dss.entity.Document;
 import com.bytmasoft.dss.enums.DocumentType;
-import com.bytmasoft.dss.exception.StorageException;
-import com.bytmasoft.dss.exception.StorageFileNotFoundException;
 import com.bytmasoft.dss.mapper.DocumentMapper;
 import com.bytmasoft.dss.repository.DocumentRepository;
 import com.bytmasoft.dss.repository.DocumentSpecification;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.data.domain.Page;
@@ -31,6 +33,8 @@ import java.util.stream.Collectors;
 @Service
 public class FileSystemStorageServiceImpl implements FileStorageService {
 
+    private static final Logger logger = LoggerFactory.getLogger(FileSystemStorageServiceImpl.class);
+
     private final DocumentSpecification documentSpecification;
     private final StorageProperties storageProperties;
     private final DocumentMapper documentMapper;
@@ -38,6 +42,9 @@ public class FileSystemStorageServiceImpl implements FileStorageService {
     private final FileValidationService fileValidationService;
     private final StringHttpMessageConverter stringHttpMessageConverter;
 
+    private String documentFolder = "/documents/";
+    private  String trashFolder = "/trash/";
+    private  String archiveFolder = "/documents/archive/";
     private Path rootLocation;
 
     /**
@@ -69,14 +76,10 @@ public class FileSystemStorageServiceImpl implements FileStorageService {
     }
 
     @Override
-    public Optional<Document> getDocumentById(Long documentId) {
-        return null;
+    public DocumentDTO getDocumentById(Long documentId) throws StorageFileNotFoundException{
+        return documentMapper.entityToDto(getDocument(documentId));
     }
 
-    @Override
-    public Optional<Document> getDocumentByVersion(Long ownerId, DocumentType documentType, Integer version) {
-        return Optional.empty();
-    }
 
     @Override
     public DocumentDTO uploadDocument(MultipartFile file, DocumentType documentType, Long ownerId) throws IOException {
@@ -117,11 +120,11 @@ public class FileSystemStorageServiceImpl implements FileStorageService {
 
     }
 
-    @Override
+/*    @Override
     public List<DocumentDTO> getAllDocumentOwner(Long ownerId) {
         return   documentRepository.findByOwnerId(ownerId).stream().map(documentMapper::entityToDto).collect(Collectors.toUnmodifiableList());
 
-    }
+    }*/
 
     @Override
     public Page<DocumentDTO> getAllDocumentOwner(List<Long> ownerIDs, Pageable pageable) {
@@ -162,8 +165,7 @@ public class FileSystemStorageServiceImpl implements FileStorageService {
     @Override
     public DocumentDTO updateDocument(Long documentId, Optional<DocumentType> documentType, Optional<Long> ownerId, Optional<MultipartFile> file) throws IOException {
 
-        Document document = documentRepository.findById(documentId).orElseThrow(() -> new StorageFileNotFoundException("Document with name : " + documentId + " not found "));
-
+        Document document = getDocument(documentId);
         if(documentType.isPresent()){
             document.setDocumentType(documentType.get());
         }
@@ -183,22 +185,81 @@ public class FileSystemStorageServiceImpl implements FileStorageService {
 
     }
 
-
-
-
-
-
-
-
-
     @Override
     public List<Resource> downloadAllDocumentsAsResource() {
         return List.of();
     }
 
     @Override
-    public Boolean deleteDocumentById(Long documentId) {
-    return false;
+    public Boolean softDeleteDocument(Long documentId) {
+        logger.info("Attempting to soft delete document with ID: {}", documentId);
+        try {
+            Document document = getDocument(documentId);
+            document.setDeleted(true);
+            moveFileToTrash(document.getFilePath());
+            logger.info("Document with ID: {} soft deleted successfully", documentId);
+            return true;
+        } catch (Exception e) {
+            throw new StorageException(e.getMessage()+" Error by soft delete document", e);
+        }
+
+    }
+
+    @Override
+    public boolean permanentlyDeleteDocument(Long documentId) {
+
+        try {
+            Document document = getDocument(documentId);
+            Path filePath = Paths.get(document.getFilePath());
+            Files.deleteIfExists(filePath);
+            documentRepository.delete(document);
+            return true;
+        } catch (Exception e) {
+            throw new StorageException(e.getMessage()+" Error by permanently delete document", e);
+        }
+    }
+
+    @Override
+    public boolean archiveDocument(Long documentId) throws StorageException{
+        logger.info("Archiving document with ID: {}", documentId);
+        try {
+            Document document = getDocument(documentId);
+            if(document.isArchived()){
+                throw new StorageException("Archive document with ID: "+documentId+" is already archived");
+            }
+            document.setFilePath(moveFileToArchive(document));
+            document.setArchived(true);
+            documentRepository.save(document);
+            logger.info("Document with ID: {} archived successfully", documentId);
+            return true;
+        }catch (Exception e){
+            throw new StorageException(e.getMessage()+" Error by archive document", e);
+        }
+
+    }
+
+    //Save to AWS S3
+    @Override
+    public boolean archiveDocumentToS3(Long documentId) {
+        try {
+           /* Document document = getDocument(documentId);
+
+            // Upload the file to S3 and get the file's URL
+            String s3Url = s3Service.uploadFileToS3(document.getFilePath());
+
+            // Update the document metadata to point to the S3 URL
+            document.setFilePath(s3Url);
+            documentRepository.save(document);
+
+            // Optionally, delete the local copy after successful upload
+            Path filePath = Paths.get(document.getFilePath());
+            Files.deleteIfExists(filePath);*/
+            return false;
+
+        }catch (Exception e){
+           throw  new StorageException(e.getMessage()+" Error by archive document to AWS S3", e);
+        }
+
     }
 
     @Override
@@ -214,7 +275,26 @@ public class FileSystemStorageServiceImpl implements FileStorageService {
      * ************************ private Section ************************************
      */
 
-     private Document getDocument(Long documentId) {
+    private String moveFileToArchive(Document document ) throws IOException {
+        Path archiveDirectory = Paths.get(storageProperties.getUpload().getLocation()+archiveFolder+"/"+document.getDocumentType().toString().toLowerCase());
+        if(!Files.exists(archiveDirectory)){
+            Files.createDirectories(archiveDirectory);
+        }
+        Path source = Paths.get(document.getFilePath()+"/"+document.getFileName());
+        Files.move(source, archiveDirectory.resolve(source.getFileName()), StandardCopyOption.REPLACE_EXISTING);
+        return archiveDirectory.toString()+"/"+source.getFileName();
+
+    }
+    private void moveFileToTrash(String filePath) throws IOException {
+        Path source = Paths.get(filePath);
+        Path trashDirectory = Paths.get(storageProperties.getUpload().getLocation()+trashFolder);
+        Files.createDirectories(trashDirectory);
+        Files.move(source, trashDirectory.resolve(source.getFileName()), StandardCopyOption.REPLACE_EXISTING);
+//        Files.move(source, trashDirectory, StandardCopyOption.REPLACE_EXISTING);
+
+    }
+
+     private Document getDocument(Long documentId) throws StorageFileNotFoundException{
         return  documentRepository.findById(documentId)
                 .orElseThrow(() -> new StorageFileNotFoundException("Document with Id: "+documentId +" not found"));
 
@@ -227,7 +307,7 @@ public class FileSystemStorageServiceImpl implements FileStorageService {
     }
     private Map<String, String> storeFile(MultipartFile file, DocumentType documentType, Long ownerId, int newVersion) throws IOException {
         String originalFilename = file.getOriginalFilename();
-        String directoryPath = storageProperties.getUpload().getLocation()+"/documents/"+documentType.toString().toLowerCase();
+        String directoryPath = storageProperties.getUpload().getLocation()+ this.documentFolder +documentType.toString().toLowerCase();
         Files.createDirectories(Paths.get(directoryPath));
 
         String fileName = generateFileName(file, documentType, ownerId, newVersion);

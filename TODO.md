@@ -16,13 +16,20 @@
 - [ ] update Readme.md
 - [ ] Create Dockerfile
 - [ ] create a security library to use for JWT token
-- [ ] update endpoint
+- [ ] update endpoints
+- [ ] add archive endpoints
+- [ ] add delete endpoints
 
 ### Done ✓
 - [x] added eureka Client 
 - [x] added to gateway
 - [x] Test from postman
-- [x] added download by filename 
+- [x] added download by filename
+- [x] add Document Specification
+- [x] add swagger sort to properties file
+- [x] add endpoint getAllDocuements /documents with pages
+- [x] add endpoint getAllDocuments  /owner/id list
+- [x] add endpoint getAllDocuments  /owners/list of owners with pages
 - [x] add endpoint /upload (Normal one file to the first level hierarchic ) 
 - [x] add endpoint /uploads (here you can send different many files to same folder middle complex hierarchic)
 - [x] add endpoint /uploads/properties (very Special endpoint very complex hierarchic) 

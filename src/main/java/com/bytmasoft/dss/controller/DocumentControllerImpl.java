@@ -1,6 +1,7 @@
 package com.bytmasoft.dss.controller;
 
 
+import com.bytmasoft.common.exception.StorageFileNotFoundException;
 import com.bytmasoft.dss.dto.DocumentDTO;
 import com.bytmasoft.dss.enums.DocumentType;
 import com.bytmasoft.dss.service.FileSystemStorageServiceImpl;
@@ -34,8 +35,8 @@ public class DocumentControllerImpl implements DocumentController {
     private final FileSystemStorageServiceImpl fileStorageService;
 
     @Override
-    public ResponseEntity<List<DocumentDTO>> getAllDocumentVersions(Long ownerId, DocumentType documentType, Integer version) {
-        return ResponseEntity.ok(fileStorageService.getAllDocumentVersions(ownerId, documentType, version));
+    public ResponseEntity<DocumentDTO> getDocumentById(Long documentId) throws StorageFileNotFoundException {
+        return ResponseEntity.ok(fileStorageService.getDocumentById(documentId));
     }
 
     @Override
@@ -62,6 +63,11 @@ public class DocumentControllerImpl implements DocumentController {
     @Override
     public ResponseEntity<DocumentDTO> updateDocument(Long documentId, Optional<DocumentType> documentType, Optional<Long> ownerId, Optional<MultipartFile> file) throws Exception {
         return ResponseEntity.ok(fileStorageService.updateDocument(documentId, documentType, ownerId, file));
+    }
+
+    @Override
+    public ResponseEntity<Boolean> archiveDocument(Long documentId) throws Exception {
+        return ResponseEntity.ok(fileStorageService.archiveDocument(documentId));
     }
 
     @Override
@@ -93,7 +99,7 @@ public class DocumentControllerImpl implements DocumentController {
 
     @Override
     public ResponseEntity<Boolean> deleteDocument(Long documentId) throws Exception {
-        return ResponseEntity.ok(fileStorageService.deleteDocumentById(documentId));
+        return ResponseEntity.ok(fileStorageService.softDeleteDocument(documentId));
     }
 
     @Override
@@ -111,9 +117,11 @@ public class DocumentControllerImpl implements DocumentController {
 
 
 
+/*
     public ResponseEntity<List<DocumentDTO>> getAllDocumentOwners(Long ownerId) {
         return ResponseEntity.ok(fileStorageService.getAllDocumentOwner(ownerId));
     }
+*/
 
 
 

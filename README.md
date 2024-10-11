@@ -13,6 +13,20 @@
 - Service send request to DMS for uploading a document (picture, certificates ....)
 - The DMS store the document and return a **file ID** or URL to the service 
 - Service take the **file ID** and store it in its database
+#### Delete documents
+- Directly deleting files can lead to irreversible data loss. Therefore we must have 
+- **Soft-delete:** instead of permanently deleting the document, mark it as "deleted" in database and
+after 30 days move it in trash) 
+- **permanet deletion:** if you need permanently delete a document(after 30 day in trash), remove it from both both
+  database and file system.
+- **Audit Trail:** log the delete operations for audititng purposes.
+#### Archive document
+- Archiving is essential for long-term storage and maintaining data and minimizing active storage costs.
+1. **Move to Archive Storage:** move documents to a separate "archive" location in the file system or cloud
+2. **Archive Metadata in Database:** keep the metadata (like documen type, owner, upload date) in database for retrieval purposes.
+   even it the document itself is archived.
+3. **Automated Archiving:** set up automatic archiving rule (e.g move documents to archive after 1 year of inactivity).
+4. **Access Control:** Archived documents should be read-only and accessed onyl by authorized users.
 ### Download Document
 - Service send request with **File ID or URL**  to DMS for downloading a document (picture, certificates ....)
 ### Reports

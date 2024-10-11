@@ -1,5 +1,7 @@
 package com.bytmasoft.dss.service;
 
+import com.bytmasoft.common.exception.StorageException;
+import com.bytmasoft.common.exception.StorageFileNotFoundException;
 import com.bytmasoft.dss.dto.DocumentDTO;
 import com.bytmasoft.dss.entity.Document;
 import com.bytmasoft.dss.enums.DocumentType;
@@ -16,13 +18,11 @@ public interface FileStorageService {
 
     void init();
 
-    Optional<Document> getDocumentById(Long documentId);
-
-    Optional<Document> getDocumentByVersion(Long ownerId, DocumentType documentType,  Integer version);
+    DocumentDTO getDocumentById(Long documentId) throws StorageFileNotFoundException;
 
     List<DocumentDTO> getAllDocumentVersions(Long ownerId, DocumentType documentType, Integer version);
 
-    List<DocumentDTO> getAllDocumentOwner(Long ownerId);
+//    List<DocumentDTO> getAllDocumentOwner(Long ownerId);
 
     Page<DocumentDTO> getAllDocumentOwner(List<Long> ownerIDs, Pageable pageable);
 
@@ -40,7 +40,13 @@ public interface FileStorageService {
 
     List<Resource> downloadAllDocumentsAsResource();
 
-    Boolean deleteDocumentById(Long documentId);
+    Boolean softDeleteDocument(Long documentId);
+
+    boolean permanentlyDeleteDocument(Long documentId);
+
+    boolean archiveDocument(Long documentId) throws StorageException;
+
+    boolean archiveDocumentToS3(Long documentId);
 
     boolean deleteAllDocuments();
 

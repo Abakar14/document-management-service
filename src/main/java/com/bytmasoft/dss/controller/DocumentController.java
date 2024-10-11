@@ -1,5 +1,6 @@
 package com.bytmasoft.dss.controller;
 
+import com.bytmasoft.common.exception.StorageFileNotFoundException;
 import com.bytmasoft.dss.dto.DocumentDTO;
 import com.bytmasoft.dss.enums.DocumentType;
 import io.swagger.v3.oas.annotations.Operation;
@@ -24,16 +25,9 @@ import java.util.Optional;
 
 public interface DocumentController {
 
-    /*
-     1- List    ==>     Get All documents by ownerId and Optional (DocumentType, version)       /documents/owner
-     2- Pages   ==>     Get All document Optional (ownerId, DocumentType, version)              /documents
-     3- Pages   ==>     Get All document List ownerIds and Optional (DocumentType, version)     /documents/owners
-     */
 
-    @GetMapping("/owner")
-    public ResponseEntity<List<DocumentDTO>> getAllDocumentVersions(@RequestParam(required = false) Long ownerId,
-                                                                    @RequestParam(required = false) DocumentType documentType,
-                                                                    @RequestParam(required = false)  Integer version);
+    @GetMapping("/{documentId}")
+    public ResponseEntity<DocumentDTO> getDocumentById(@PathVariable Long documentId) throws StorageFileNotFoundException;
 
 
     @GetMapping("/owners")
@@ -77,6 +71,11 @@ public interface DocumentController {
                                                @RequestParam(value = "documentType") Optional<DocumentType> documentType,
                                                @RequestParam(value = "ownerId") Optional<Long> ownerId,
                                                @RequestParam(value = "file") Optional<MultipartFile> file) throws Exception;
+
+
+
+    @PutMapping(value = "/{documentId}/archive")
+    ResponseEntity<Boolean> archiveDocument(@PathVariable Long documentId) throws Exception;
 
 
 

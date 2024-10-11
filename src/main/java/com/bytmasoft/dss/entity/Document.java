@@ -39,6 +39,7 @@ public class Document implements Serializable {
     private String updatedBy;
 
     private boolean deleted = false;
+    private boolean isArchived = false;
 
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     @CreationTimestamp

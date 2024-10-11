@@ -1,3 +1,26 @@
+spring:
+    application:
+        name: document-management-service
+    datasource:
+        driver-class-name: org.postgresql.Driver
+        hikari:
+            connection-timeout: 20000
+            maximum-pool-size: 5
+        url: jdbc:postgresql://${POSTGRES_DEV_HOST}:${POSTGRES_DEV_PORT}/${DM_SERVICE_DEV_DB}
+        username: ${POSTGRES_DEV_USER}
+        password: ${POSTGRES_DEV_PASSWORD}
+    jpa:
+        hibernate:
+            ddl-auto: update
+        properties:
+            hibernate:
+                dialect: org.hibernate.dialect.PostgreSQLDialect
+    servlet:
+        multipart:
+            enabled: true
+    main:
+        allow-bean-definition-overriding: true
+
 server:
     port: 8085
     servlet:
@@ -5,45 +28,16 @@ server:
 eureka:
     client:
         service-url:
-            defaultZone: http://localhost:8761/eureka/
-spring:
-    application:
-        name: dm-service
-    datasource:
-        driver-class-name: org.postgresql.Driver
-        hikari:
-            connection-timeout: 20000
-            maximum-pool-size: 5
-        password: ${datasource.password}
-        url: jdbc:postgresql://${datasource.url}:${datasource.port}/${datasource.name}
-        username: ${datasource.user}
-    jpa:
-        hibernate:
-            ddl-auto: update
-            format_sql: true
-    properties:
-        hibernate:
-            dialect: org.hibernate.dialect.PostgreSQLDialect
-        show-sql: true
-    servlet:
-        multipart:
-            enabled: true
-# we must use it to allow the application overriding the lib common and security
-    main:
-        allow-bean-definition-overriding: true
+            defaultZone: http://${EUREKA_DEV_HOST}:${EUREKA_DEV_PORT}/eureka/
+
 
 springdoc:
-  swagger-ui:
-      tags-sorter: alpha
-      operations-sorter: alpha
+    swagger-ui:
+        tags-sorter: alpha
+        display-operation-id: false
+        operations-sorter: alpha
+        display-request-duration: true
 
-logging:
-    level:
-        org:
-            hibernate:
-                sql: DEBUG
-                type: TRACE
-                type.descriptor.sql: TRACE
 # JWT Properties expiration and refresh times (in milliseconds)
 # Secret key
 jwt:
@@ -55,7 +49,13 @@ jwt:
     refresh:
         token:
             expiration: 604800000    # 7 days in milliseconds
-
+logging:
+    level:
+        org:
+            hibernate:
+                sql: DEBUG
+                type: TRACE
+                type.descriptor.sql: TRACE
 
 file:
     storage:
