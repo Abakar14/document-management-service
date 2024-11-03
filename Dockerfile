@@ -2,7 +2,7 @@ FROM openjdk:21-jdk-slim
 
 WORKDIR /app
 # Copy authentication service .jar
-COPY build/libs/dm-service-1.0.0-SNAPSHOT.jar  dm-service.jar
+COPY build/libs/dm-service-1.0.0.jar  dm-service.jar
 
 # Copy wait-for-it.sh script
 COPY ./wait-for-it.sh  app/wait-for-it.sh

@@ -97,9 +97,9 @@ public class FileSystemStorageService {
                 .ownerId(ownerId)
                 .originalFileName(storedFileProperties.get("originalFilename"))
                 .filePath(storedFileProperties.get("filePath"))
-                .insertedBy(getUsername())
-                .version(newVersion)
+               .version(newVersion)
                 .build();
+        document.setAddedBy(getUsername());
         return documentMapper.entityToDto(documentRepository.save(document));
     }
 
@@ -349,7 +349,8 @@ public class FileSystemStorageService {
         document.setFileName(fileName);
         document.setFilePath(targetLocation.toString().substring(0, targetLocation.toString().lastIndexOf("/")));
         //TODO  take a user from ContextHolder
-        document.setInsertedBy(getUsername());
+        document.setAddedBy(getUsername());
+
 
         documentRepository.save(document);
         return documentMapper.entityToDto(document);

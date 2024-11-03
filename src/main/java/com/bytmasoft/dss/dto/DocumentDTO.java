@@ -13,6 +13,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
@@ -29,9 +30,8 @@ public class DocumentDTO extends DocumentCreateDTO {
     private String updatedBy;
 
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
-    private Timestamp uploadedOn;
-
+    private LocalDateTime addedOn;
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
-    private Timestamp modifiedOn;
+    private LocalDateTime modifiedOn;
 
 }
