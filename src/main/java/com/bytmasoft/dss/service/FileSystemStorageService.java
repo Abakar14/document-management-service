@@ -31,9 +31,9 @@ import java.util.stream.Collectors;
 
 
 @Service
-public class FileSystemStorageServiceImpl implements FileStorageService {
+public class FileSystemStorageService {
 
-    private static final Logger logger = LoggerFactory.getLogger(FileSystemStorageServiceImpl.class);
+    private static final Logger logger = LoggerFactory.getLogger(FileSystemStorageService.class);
 
     private final DocumentSpecification documentSpecification;
     private final StorageProperties storageProperties;
@@ -55,7 +55,7 @@ public class FileSystemStorageServiceImpl implements FileStorageService {
      * @param fileValidationService
      * @param stringHttpMessageConverter
      */
-    public FileSystemStorageServiceImpl(DocumentSpecification documentSpecification, StorageProperties storageProperties, DocumentMapper documentMapper, DocumentRepository documentRepository, FileValidationService fileValidationService, StringHttpMessageConverter stringHttpMessageConverter) {
+    public FileSystemStorageService(DocumentSpecification documentSpecification, StorageProperties storageProperties, DocumentMapper documentMapper, DocumentRepository documentRepository, FileValidationService fileValidationService, StringHttpMessageConverter stringHttpMessageConverter) {
         this.documentSpecification = documentSpecification;
         this.storageProperties = storageProperties;
         this.rootLocation = Paths.get(storageProperties.getUpload().getLocation());
@@ -66,7 +66,7 @@ public class FileSystemStorageServiceImpl implements FileStorageService {
         this.stringHttpMessageConverter = stringHttpMessageConverter;
     }
 
-    @Override
+
     public void init() {
         try {
             Path path = Files.createDirectories(rootLocation);
@@ -75,13 +75,11 @@ public class FileSystemStorageServiceImpl implements FileStorageService {
         }
     }
 
-    @Override
+
     public DocumentDTO getDocumentById(Long documentId) throws StorageFileNotFoundException{
         return documentMapper.entityToDto(getDocument(documentId));
     }
 
-
-    @Override
     public DocumentDTO uploadDocument(MultipartFile file, DocumentType documentType, Long ownerId) throws IOException {
 
         fileValidationService.isSupportedFileType(file);
@@ -105,7 +103,7 @@ public class FileSystemStorageServiceImpl implements FileStorageService {
         return documentMapper.entityToDto(documentRepository.save(document));
     }
 
-    @Override
+
     public List<DocumentDTO> uploadDocuments(List<MultipartFile> files, DocumentType documentType, Long ownerId) throws IOException {
         List<DocumentDTO> documentDTOS = new ArrayList<>();
         for (MultipartFile file : files) {
@@ -114,7 +112,7 @@ public class FileSystemStorageServiceImpl implements FileStorageService {
         return documentDTOS;
     }
 
-    @Override
+
     public List<DocumentDTO> getAllDocumentVersions(Long ownerId, DocumentType documentType, Integer version) {
         return documentRepository.findAll(documentSpecification.getDocumentsByDocumentTypeAndVersion(ownerId, documentType, version)).stream().map(documentMapper::entityToDto).collect(Collectors.toUnmodifiableList());
 
@@ -126,12 +124,12 @@ public class FileSystemStorageServiceImpl implements FileStorageService {
 
     }*/
 
-    @Override
+
     public Page<DocumentDTO> getAllDocumentOwner(List<Long> ownerIDs, Pageable pageable) {
         return documentRepository.findByOwnerIdIn(ownerIDs,  pageable)
                 .map(documentMapper::entityToDto);
     }
-    @Override
+
     public Page<DocumentDTO> getAllDocumentsOwners(List<Long> ownerIDs, DocumentType documentType, Integer version, Pageable pageable) {
 
         Specification<Document> specification = documentSpecification.getDocumentsOwnerListByDocumentTypeAndVersion(ownerIDs, documentType, version);
@@ -141,19 +139,19 @@ public class FileSystemStorageServiceImpl implements FileStorageService {
 
 
 
-    @Override
+
     public Page<DocumentDTO> getAllDocuments(Long ownerId, DocumentType documentType, Integer version, Pageable pageable) {
         Specification<Document> specification = documentSpecification.getDocumentsByDocumentTypeAndVersion(ownerId, documentType, version);
         return documentRepository.findAll(specification, pageable).map(documentMapper::entityToDto);
     }
 
-    @Override
+
     public Resource downloadDocument(Long ownerId, DocumentType documentType, Integer version) throws IOException {
         Document document = getDocument(ownerId, documentType, version);
         return loadFileAsResource(document.getFileName());
     }
 
-    @Override
+
     public Resource downloadDocument(Long documentId) throws IOException {
         Document document = getDocument(documentId);
         return loadFileAsResource(document.getFileName());
@@ -162,7 +160,7 @@ public class FileSystemStorageServiceImpl implements FileStorageService {
     //TODO Before do update we need to archive the table Document
     // document_archive table to save all changes in it
 
-    @Override
+
     public DocumentDTO updateDocument(Long documentId, Optional<DocumentType> documentType, Optional<Long> ownerId, Optional<MultipartFile> file) throws IOException {
 
         Document document = getDocument(documentId);
@@ -185,12 +183,12 @@ public class FileSystemStorageServiceImpl implements FileStorageService {
 
     }
 
-    @Override
+
     public List<Resource> downloadAllDocumentsAsResource() {
         return List.of();
     }
 
-    @Override
+
     public Boolean softDeleteDocument(Long documentId) {
         logger.info("Attempting to soft delete document with ID: {}", documentId);
         try {
@@ -205,7 +203,7 @@ public class FileSystemStorageServiceImpl implements FileStorageService {
 
     }
 
-    @Override
+
     public boolean permanentlyDeleteDocument(Long documentId) {
 
         try {
@@ -219,7 +217,7 @@ public class FileSystemStorageServiceImpl implements FileStorageService {
         }
     }
 
-    @Override
+
     public boolean archiveDocument(Long documentId) throws StorageException{
         logger.info("Archiving document with ID: {}", documentId);
         try {
@@ -239,7 +237,7 @@ public class FileSystemStorageServiceImpl implements FileStorageService {
     }
 
     //Save to AWS S3
-    @Override
+
     public boolean archiveDocumentToS3(Long documentId) {
         try {
            /* Document document = getDocument(documentId);
@@ -262,7 +260,7 @@ public class FileSystemStorageServiceImpl implements FileStorageService {
 
     }
 
-    @Override
+
     public boolean deleteAllDocuments() {
 //        return FileSystemUtils.deleteRecursively(rootLocation.toFile();
         return false;

@@ -38,7 +38,9 @@ public class Document implements Serializable {
     private String insertedBy;
     private String updatedBy;
 
+    @Builder.Default
     private boolean deleted = false;
+    @Builder.Default
     private boolean isArchived = false;
 
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")

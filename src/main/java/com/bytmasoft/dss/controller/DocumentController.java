@@ -3,55 +3,79 @@ package com.bytmasoft.dss.controller;
 import com.bytmasoft.common.exception.StorageFileNotFoundException;
 import com.bytmasoft.dss.dto.DocumentDTO;
 import com.bytmasoft.dss.enums.DocumentType;
+import com.bytmasoft.dss.service.FileSystemStorageService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
 
-public interface DocumentController {
 
+
+@Schema(name ="DM-Service")
+@Tag(name = "Documents", description = "Document Management Service for all documents")
+@Validated
+@RequiredArgsConstructor
+@RestController
+@RequestMapping(value = "/documents", produces = MediaType.APPLICATION_JSON_VALUE)
+public class DocumentController {
+
+    private final FileSystemStorageService fileStorageService;
 
     @GetMapping("/{documentId}")
-    public ResponseEntity<DocumentDTO> getDocumentById(@PathVariable Long documentId) throws StorageFileNotFoundException;
-
+    public ResponseEntity<DocumentDTO> getDocumentById(@PathVariable Long documentId) throws StorageFileNotFoundException{
+        return ResponseEntity.ok(fileStorageService.getDocumentById(documentId));
+    }
 
     @GetMapping("/owners")
     public ResponseEntity<Page<DocumentDTO>> getAllDocumentsOwners(@RequestParam List<Long> ownerIDs,
-                                                             @RequestParam(required = false) DocumentType documentType,
-                                                             @RequestParam(required = false) Integer version,
-                                                             @ParameterObject
-                                                                       @Parameter(description = "Pagination information", required = false, schema = @Schema(implementation = Pageable.class))
-                                                                       @PageableDefault(page = 0, size = 10, sort = {"id", "fileName"}, direction = Sort.Direction.ASC) Pageable pageable);
+                                                                   @RequestParam(required = false) DocumentType documentType,
+                                                                   @RequestParam(required = false) Integer version,
+                                                                   @ParameterObject
+                                                                   @Parameter(description = "Pagination information", required = false, schema = @Schema(implementation = Pageable.class))
+                                                                   @PageableDefault(page = 0, size = 10, sort = {"id", "fileName"}, direction = Sort.Direction.ASC) Pageable pageable){
+        return ResponseEntity.ok(fileStorageService.getAllDocumentsOwners(ownerIDs, documentType, version, pageable));
+    }
 
     @GetMapping
     public ResponseEntity<Page<DocumentDTO>> getAllDocuments(@RequestParam(required = false) Long ownerId,
                                                              @RequestParam(required = false) DocumentType documentType,
                                                              @RequestParam(required = false) Integer version,
                                                              @ParameterObject
-                                                                       @Parameter(description = "Pagination information", required = false, schema = @Schema(implementation = Pageable.class))
-                                                                       @PageableDefault(page = 0, size = 10, sort = {"id", "fileName"}, direction = Sort.Direction.ASC) Pageable pageable);
+                                                             @Parameter(description = "Pagination information", required = false, schema = @Schema(implementation = Pageable.class))
+                                                             @PageableDefault(page = 0, size = 10, sort = {"id", "fileName"}, direction = Sort.Direction.ASC) Pageable pageable) {
+        return ResponseEntity.ok(fileStorageService.getAllDocuments(ownerId, documentType, version, pageable));
+    }
 
 
     @PostMapping(value = "/upload", consumes = "multipart/form-data")
     public ResponseEntity<DocumentDTO> uploadDocument(
             @Parameter(description = "A file for a documentType") @RequestParam("file") MultipartFile file,
             @RequestParam("documentType") DocumentType documentType,
-            @RequestParam("ownerId") Long ownerId) throws IOException;
+            @RequestParam("ownerId") Long ownerId) throws IOException{
+        return ResponseEntity.ok(fileStorageService.uploadDocument(file, documentType, ownerId));
+
+    }
 
     /**
      * @param files
@@ -61,23 +85,38 @@ public interface DocumentController {
      * @throws Exception
      */
     @PostMapping(value = "/uploads", consumes = "multipart/form-data")
-    ResponseEntity<List<DocumentDTO>> uploadDocumentsMiddleComplexHirarchic(@RequestParam("file") List<MultipartFile> files,
+    public ResponseEntity<List<DocumentDTO>> uploadDocumentsMiddleComplexHirarchic(@RequestParam("file") List<MultipartFile> files,
                                                                             @RequestParam("documentType") DocumentType documentType,
-                                                                            @RequestParam("ownerId") Long ownerId) throws Exception;
+                                                                            @RequestParam("ownerId") Long ownerId) throws Exception{
+        return ResponseEntity.ok(fileStorageService.uploadDocuments(files, documentType, ownerId));
+    }
 
 
     @PutMapping(consumes = "multipart/form-data")
-    ResponseEntity<DocumentDTO> updateDocument(@RequestParam("documentId") Long documentId,
+    public ResponseEntity<DocumentDTO> updateDocument(@RequestParam("documentId") Long documentId,
                                                @RequestParam(value = "documentType") Optional<DocumentType> documentType,
                                                @RequestParam(value = "ownerId") Optional<Long> ownerId,
-                                               @RequestParam(value = "file") Optional<MultipartFile> file) throws Exception;
-
-
+                                               @RequestParam(value = "file") Optional<MultipartFile> file) throws Exception {
+        return ResponseEntity.ok(fileStorageService.updateDocument(documentId, documentType, ownerId, file));
+    }
 
     @PutMapping(value = "/{documentId}/archive")
-    ResponseEntity<Boolean> archiveDocument(@PathVariable Long documentId) throws Exception;
+    public ResponseEntity<Boolean> archiveDocument(@PathVariable Long documentId) throws Exception{
+        return ResponseEntity.ok(fileStorageService.archiveDocument(documentId));
+    }
 
+    @GetMapping("/owners/{ownerId}/{documentType}/{version}/download")
+    public ResponseEntity<Resource> downloadDocument(@PathVariable("ownerId") Long ownerId,
+                                                     @PathVariable("documentType") DocumentType documentType,
+                                                     @PathVariable("version") Integer version) throws IOException{
+        Resource file = fileStorageService.downloadDocument(ownerId, documentType, version);
+        String fileContentType = Files.probeContentType(Paths.get(file.getURI()));
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(fileContentType))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + file.getFilename())
+                .body(file);
 
+    }
 
 
     @Operation(summary = "Download a document")
@@ -87,22 +126,23 @@ public interface DocumentController {
             @ApiResponse(responseCode = "404", description = "File not found")
     })
     @GetMapping(value = "/{documentId}/download")
-    ResponseEntity<Resource> downloadDocument(@PathVariable("documentId") Long documentId) throws Exception;
+    public ResponseEntity<Resource> downloadDocument(@PathVariable("documentId") Long documentId) throws Exception{
+        Resource file = fileStorageService.downloadDocument(documentId);
+        String fileContentType = Files.probeContentType(Paths.get(file.getURI()));
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(fileContentType))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + file.getFilename())
+                .body(file);
+    }
 
-
-    @GetMapping("/owners/{ownerId}/{documentType}/{version}/download")
-    public ResponseEntity<Resource> downloadDocument(@PathVariable("ownerId") Long ownerId,
-                                                     @PathVariable("documentType") DocumentType documentType,
-                                                     @PathVariable("version") Integer version) throws IOException;
-
-
-
-
-    ResponseEntity<List<Resource>> getAllDocumentsAsResource() throws Exception;
-
+    public ResponseEntity<List<Resource>> getAllDocumentsAsResource() throws Exception{
+        return ResponseEntity.ok(fileStorageService.downloadAllDocumentsAsResource());
+    }
 
     @DeleteMapping("/{documentId}")
-    ResponseEntity<Boolean> deleteDocument(@PathVariable("documentId") Long documentId) throws Exception;
+    public ResponseEntity<Boolean> deleteDocument(@PathVariable("documentId") Long documentId) throws Exception{
+        return ResponseEntity.ok(fileStorageService.softDeleteDocument(documentId));
+    }
 
     /**
      * only for admin Please note delete hole documents
@@ -112,12 +152,36 @@ public interface DocumentController {
      * @throws Exception
      */
     @DeleteMapping
-    ResponseEntity<Boolean> deleteAllDocuments() throws Exception;
+    public ResponseEntity<Boolean> deleteAllDocuments() throws Exception{
+        return ResponseEntity.ok(fileStorageService.deleteAllDocuments());
+    }
 
 
-    /**
-     * complex Upload with list of files und complex level directories hierarchic
-     */
+
+ //   @Operation(summary = "Get all documents", description = "Retrieve all documents")
+
+/*    public ResponseEntity<List<DocumentDTO>> getAllDocumentVersions(Long ownerId, DocumentType documentType) {
+        return ResponseEntity.ok(fileStorageService.getAllDocumentVersions(ownerId, documentType));
+    }*/
+
+
+
+/*
+    public ResponseEntity<List<DocumentDTO>> getAllDocumentOwners(Long ownerId) {
+        return ResponseEntity.ok(fileStorageService.getAllDocumentOwner(ownerId));
+    }
+*/
+
+
+
+
+    public ResponseEntity<Page<DocumentDTO>> getAllDocuments(List<Long> ownerIDs, Pageable pageable) {
+        return ResponseEntity.ok(fileStorageService.getAllDocumentOwner(ownerIDs, pageable));
+    }
+
+
+
+
     /*@PostMapping(value = "/uploads/properties", consumes = "multipart/form-data")
     ResponseEntity<List<DocumentDTO>> uploadDocumentComplexDirectoriesHierachic(@Parameter(description = "A file for the service type and file type")  @RequestPart("files") List<MultipartFile> files,
                                                                                 @Parameter(description = "file type")  @RequestParam("fileTypes") String...fileTypes) throws Exception;
