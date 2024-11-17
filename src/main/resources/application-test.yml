@@ -5,21 +5,16 @@ server:
 eureka:
     client:
         service-url:
-            defaultZone: http://localhost:8761/eureka/
+            defaultZone: http://localhost:8762/eureka/
 spring:
     application:
         name: dm-service
     datasource:
-        driver-class-name: org.postgresql.Driver
-        hikari:
-            connection-timeout: 20000
-            maximum-pool-size: 5
-        password: ${datasource.password}
-        url: jdbc:postgresql://${datasource.url}:${datasource.port}/${datasource.name}
-        username: ${datasource.user}
+        url: jdbc:h2:mem:testdb
+        driver-class-name: org.h2.Driver
     jpa:
         hibernate:
-            ddl-auto: update
+            ddl-auto: create-drop
             format_sql: true
     properties:
         hibernate:

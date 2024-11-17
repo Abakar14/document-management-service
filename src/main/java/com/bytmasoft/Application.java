@@ -12,7 +12,6 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 @EnableConfigurationProperties(StorageProperties.class)
 @EnableJpaAuditing
 @SpringBootApplication
-//@SpringBootApplication(scanBasePackages = {"com.bytmasoft.common", "com.bytmasoft"})
 public class Application {
 
     public static void main(String[] args) {

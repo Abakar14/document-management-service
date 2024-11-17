@@ -3,12 +3,13 @@ package com.bytmasoft.dss.service;
 import com.bytmasoft.common.exception.StorageException;
 import com.bytmasoft.common.exception.StorageFileNotFoundException;
 import com.bytmasoft.dss.config.StorageProperties;
-import com.bytmasoft.dss.dto.DocumentDTO;
+import com.bytmasoft.dss.dto.DocumentDto;
 import com.bytmasoft.dss.entity.Document;
 import com.bytmasoft.dss.enums.DocumentType;
 import com.bytmasoft.dss.mapper.DocumentMapper;
 import com.bytmasoft.dss.repository.DocumentRepository;
 import com.bytmasoft.dss.repository.DocumentSpecification;
+import com.bytmasoft.dss.util.DMUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
@@ -41,6 +42,7 @@ public class FileSystemStorageService {
     private final DocumentRepository documentRepository;
     private final FileValidationService fileValidationService;
     private final StringHttpMessageConverter stringHttpMessageConverter;
+    private final DMUtils  dmUtils;
 
     private String documentFolder = "/documents/";
     private  String trashFolder = "/trash/";
@@ -55,13 +57,14 @@ public class FileSystemStorageService {
      * @param fileValidationService
      * @param stringHttpMessageConverter
      */
-    public FileSystemStorageService(DocumentSpecification documentSpecification, StorageProperties storageProperties, DocumentMapper documentMapper, DocumentRepository documentRepository, FileValidationService fileValidationService, StringHttpMessageConverter stringHttpMessageConverter) {
+    public FileSystemStorageService(DocumentSpecification documentSpecification, StorageProperties storageProperties, DocumentMapper documentMapper, DocumentRepository documentRepository, FileValidationService fileValidationService, StringHttpMessageConverter stringHttpMessageConverter, DMUtils dmUtils) {
         this.documentSpecification = documentSpecification;
         this.storageProperties = storageProperties;
         this.rootLocation = Paths.get(storageProperties.getUpload().getLocation());
         this.documentMapper = documentMapper;
         this.documentRepository = documentRepository;
         this.fileValidationService = fileValidationService;
+        this.dmUtils = dmUtils;
         init();
         this.stringHttpMessageConverter = stringHttpMessageConverter;
     }
@@ -76,11 +79,11 @@ public class FileSystemStorageService {
     }
 
 
-    public DocumentDTO getDocumentById(Long documentId) throws StorageFileNotFoundException{
-        return documentMapper.entityToDto(getDocument(documentId));
+    public DocumentDto getDocumentById(Long documentId) throws StorageFileNotFoundException{
+        return documentMapper.documentToDto(getDocument(documentId));
     }
 
-    public DocumentDTO uploadDocument(MultipartFile file, DocumentType documentType, Long ownerId) throws IOException {
+    public DocumentDto uploadDocument(MultipartFile file, DocumentType documentType, Long ownerId) throws IOException {
 
         fileValidationService.isSupportedFileType(file);
 
@@ -99,22 +102,27 @@ public class FileSystemStorageService {
                 .filePath(storedFileProperties.get("filePath"))
                .version(newVersion)
                 .build();
-        document.setAddedBy(getUsername());
-        return documentMapper.entityToDto(documentRepository.save(document));
+        document.setAddedBy(dmUtils.getUsername());
+
+        System.out.printf("document _1 " +document.toString());
+        Document document1 = documentRepository.save(document);
+        System.out.printf("document1 _2 " +document1.toString());
+
+        return documentMapper.documentToDto(document1);
     }
 
 
-    public List<DocumentDTO> uploadDocuments(List<MultipartFile> files, DocumentType documentType, Long ownerId) throws IOException {
-        List<DocumentDTO> documentDTOS = new ArrayList<>();
+    public List<DocumentDto> uploadDocuments(List<MultipartFile> files, DocumentType documentType, Long ownerId) throws IOException {
+        List<DocumentDto> documentDtos = new ArrayList<>();
         for (MultipartFile file : files) {
-           documentDTOS.add(uploadDocument(file, documentType, ownerId));
+           documentDtos.add(uploadDocument(file, documentType, ownerId));
         }
-        return documentDTOS;
+        return documentDtos;
     }
 
 
-    public List<DocumentDTO> getAllDocumentVersions(Long ownerId, DocumentType documentType, Integer version) {
-        return documentRepository.findAll(documentSpecification.getDocumentsByDocumentTypeAndVersion(ownerId, documentType, version)).stream().map(documentMapper::entityToDto).collect(Collectors.toUnmodifiableList());
+    public List<DocumentDto> getAllDocumentVersions(Long ownerId, DocumentType documentType, Integer version) {
+        return documentRepository.findAll(documentSpecification.getDocumentsByDocumentTypeAndVersion(ownerId, documentType, version)).stream().map(documentMapper::documentToDto).collect(Collectors.toUnmodifiableList());
 
     }
 
@@ -125,24 +133,24 @@ public class FileSystemStorageService {
     }*/
 
 
-    public Page<DocumentDTO> getAllDocumentOwner(List<Long> ownerIDs, Pageable pageable) {
+    public Page<DocumentDto> getAllDocumentOwner(List<Long> ownerIDs, Pageable pageable) {
         return documentRepository.findByOwnerIdIn(ownerIDs,  pageable)
-                .map(documentMapper::entityToDto);
+                .map(documentMapper::documentToDto);
     }
 
-    public Page<DocumentDTO> getAllDocumentsOwners(List<Long> ownerIDs, DocumentType documentType, Integer version, Pageable pageable) {
+    public Page<DocumentDto> getAllDocumentsOwners(List<Long> ownerIDs, DocumentType documentType, Integer version, Pageable pageable) {
 
         Specification<Document> specification = documentSpecification.getDocumentsOwnerListByDocumentTypeAndVersion(ownerIDs, documentType, version);
-       return documentRepository.findAll(specification, pageable).map(documentMapper::entityToDto);
+       return documentRepository.findAll(specification, pageable).map(documentMapper::documentToDto);
 
     }
 
 
 
 
-    public Page<DocumentDTO> getAllDocuments(Long ownerId, DocumentType documentType, Integer version, Pageable pageable) {
+    public Page<DocumentDto> getAllDocuments(Long ownerId, DocumentType documentType, Integer version, Pageable pageable) {
         Specification<Document> specification = documentSpecification.getDocumentsByDocumentTypeAndVersion(ownerId, documentType, version);
-        return documentRepository.findAll(specification, pageable).map(documentMapper::entityToDto);
+        return documentRepository.findAll(specification, pageable).map(documentMapper::documentToDto);
     }
 
 
@@ -161,7 +169,7 @@ public class FileSystemStorageService {
     // document_archive table to save all changes in it
 
 
-    public DocumentDTO updateDocument(Long documentId, Optional<DocumentType> documentType, Optional<Long> ownerId, Optional<MultipartFile> file) throws IOException {
+    public DocumentDto updateDocument(Long documentId, Optional<DocumentType> documentType, Optional<Long> ownerId, Optional<MultipartFile> file) throws IOException {
 
         Document document = getDocument(documentId);
         if(documentType.isPresent()){
@@ -179,7 +187,7 @@ public class FileSystemStorageService {
             return this.uploadDocument(file.get(), document.getDocumentType(), document.getOwnerId());
         }
 
-        return documentMapper.entityToDto(documentRepository.save(document));
+        return documentMapper.documentToDto(documentRepository.save(document));
 
     }
 
@@ -330,7 +338,7 @@ public class FileSystemStorageService {
         return originalFilename.substring(originalFilename.lastIndexOf(".")+1);
     }
 
-    private DocumentDTO saveStandard(MultipartFile file, String serviceType, String fileType, Path serviceDir) throws IOException {
+    private DocumentDto saveStandard(MultipartFile file, String serviceType, String fileType, Path serviceDir) throws IOException {
 
         String fileName = UUID.randomUUID().toString() + file.getOriginalFilename();
         Path targetLocation = null;
@@ -349,11 +357,11 @@ public class FileSystemStorageService {
         document.setFileName(fileName);
         document.setFilePath(targetLocation.toString().substring(0, targetLocation.toString().lastIndexOf("/")));
         //TODO  take a user from ContextHolder
-        document.setAddedBy(getUsername());
+        document.setAddedBy(dmUtils.getUsername());
 
 
         documentRepository.save(document);
-        return documentMapper.entityToDto(document);
+        return documentMapper.documentToDto(document);
 
     }
 
@@ -370,10 +378,7 @@ public class FileSystemStorageService {
                 .build();
 
     }
-    private String getUsername() {
-      /*  return SecurityContextHolder.getContext().getAuthentication().getName();*/
-        return "Abakar";
-    }
+
     private Resource loadFileAsResource(String fileName) throws IOException {
         try {
             Path filePath = load(fileName);
@@ -396,6 +401,21 @@ public class FileSystemStorageService {
                 .findFirst()
                 .orElseThrow(() -> new StorageFileNotFoundException("File " + filename + " not found"));
     }
+
+    public List<DocumentDto> uploadDocuments(List<MultipartFile> files, List<DocumentType> documentTypes, Long ownerId) throws IOException {
+
+        if(files.size() != documentTypes.size()){
+            throw new IllegalArgumentException("Each file must have a corresponding document type.");
+        }
+
+        List<DocumentDto> documentDtos = new ArrayList<>();
+        for(int i= 0; i < files.size(); i++){
+            documentDtos.add(uploadDocument(files.get(i), documentTypes.get(i), ownerId));
+        }
+
+        return documentDtos;
+    }
+
 
     /******************************************** Delete Section *******************************/
 

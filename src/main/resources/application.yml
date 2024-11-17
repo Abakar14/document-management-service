@@ -1,3 +1,36 @@
+# application.yml (Base Configuration)
 spring:
+    application:
+        name: dm-service
     profiles:
         active: dev
+    servlet:
+        multipart:
+            enabled: true
+    main:
+        allow-bean-definition-overriding: true
+# other common properties
+server:
+    servlet:
+        context-path: /dss/api/v1/
+eureka:
+    client:
+        service-url:
+            defaultZone: http://localhost:8761/eureka/
+logging:
+    level:
+        org:
+            springframework:
+                web: DEBUG
+                security: DEBUG
+
+# Secret key
+jwt:
+    secret:
+        key: 8KvVu4Bn2KwBNX1MdnXY6VaRVLekVxurk3aaJxnzdCuZL6AHEL0EnnAOYLZtHWUr
+    access:
+        token:
+            expiration: 1800000 # 30 min in milliseconds for token expiration time
+    refresh:
+        token:
+            expiration: 604800000 # 7 days in milliseconds

@@ -2,9 +2,14 @@ package com.bytmasoft.dss.config;
 
 
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
+import io.swagger.v3.oas.annotations.enums.SecuritySchemeIn;
+import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
 import io.swagger.v3.oas.annotations.info.Contact;
 import io.swagger.v3.oas.annotations.info.Info;
 import io.swagger.v3.oas.annotations.info.License;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.security.SecurityScheme;
+import io.swagger.v3.oas.annotations.security.SecuritySchemes;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.context.annotation.Configuration;
 
@@ -28,7 +33,7 @@ import org.springframework.context.annotation.Configuration;
         ),
         tags = {
                 @Tag(name = "Documents", description = "Document Management Service for all documents")
-        }
+        },
 
         //,
         //,
@@ -43,25 +48,24 @@ import org.springframework.context.annotation.Configuration;
                          url = "http://www.prod:8081"
                  )
          },*/
-//        security = {
-//                @SecurityRequirement(
-//                        name = "BearerAuth"
-//                )
-//        }
+        security = {
+                @SecurityRequirement(
+                        name = "BearerAuth"
+                )
+        }
 )
-//@SecuritySchemes(
-//        value = {
-//                @SecurityScheme(
-//                        name = "BearerAuth",
-//                        description = "Jwt authentication",
-//                        scheme = "Bearer",
-//                        type = SecuritySchemeType.HTTP,
-//                        bearerFormat = "JWT",
-//                        in = SecuritySchemeIn.HEADER
-//                )
-//        }
-//)
-
+@SecuritySchemes(
+        value = {
+                @SecurityScheme(
+                        name = "BearerAuth",
+                        description = "Jwt authentication",
+                        scheme = "Bearer",
+                        type = SecuritySchemeType.HTTP,
+                        bearerFormat = "JWT",
+                        in = SecuritySchemeIn.HEADER
+                )
+        }
+)
 @Configuration
 public class OpenApiConfig {
 }

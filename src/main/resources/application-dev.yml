@@ -1,6 +1,4 @@
 spring:
-    application:
-        name: dm-service
     datasource:
         driver-class-name: org.postgresql.Driver
         hikari:
@@ -68,3 +66,5 @@ file:
                 - docx
                 - jpg
                 - png
+                - image/jpeg
+                - pdf
