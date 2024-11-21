@@ -3,6 +3,7 @@ package com.bytmasoft.dss.controller;
 import com.bytmasoft.common.exception.StorageFileNotFoundException;
 import com.bytmasoft.dss.dto.DocumentDto;
 import com.bytmasoft.dss.enums.DocumentType;
+import com.bytmasoft.dss.enums.OwnerType;
 import com.bytmasoft.dss.service.FileSystemStorageService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -54,21 +55,23 @@ public class DocumentController {
     @GetMapping("/owners")
     public ResponseEntity<Page<DocumentDto>> getAllDocumentsOwners(@RequestParam List<Long> ownerIDs,
                                                                    @RequestParam(required = false) DocumentType documentType,
+                                                                   @RequestParam(required = false) OwnerType ownerType,
                                                                    @RequestParam(required = false) Integer version,
                                                                    @ParameterObject
                                                                    @Parameter(description = "Pagination information", required = false, schema = @Schema(implementation = Pageable.class))
                                                                    @PageableDefault(page = 0, size = 10, sort = {"id", "fileName"}, direction = Sort.Direction.ASC) Pageable pageable){
-        return ResponseEntity.ok(fileStorageService.getAllDocumentsOwners(ownerIDs, documentType, version, pageable));
+        return ResponseEntity.ok(fileStorageService.getAllDocumentsOwners(ownerIDs, documentType, ownerType, version, pageable));
     }
 
     @GetMapping
     public ResponseEntity<PagedModel<EntityModel<DocumentDto>>> getAllDocuments(@RequestParam(required = false) Long ownerId,
                                                                                 @RequestParam(required = false) DocumentType documentType,
+                                                                                @RequestParam(required = false) OwnerType ownerType,
                                                                                 @RequestParam(required = false) Integer version,
                                                                                 @ParameterObject
                                                              @Parameter(description = "Pagination information", required = false, schema = @Schema(implementation = Pageable.class))
                                                              @PageableDefault(page = 0, size = 10, sort = {"id", "fileName"}, direction = Sort.Direction.ASC) Pageable pageable) {
-       Page<DocumentDto> documentDtoPage = fileStorageService.getAllDocuments(ownerId, documentType, version, pageable);
+       Page<DocumentDto> documentDtoPage = fileStorageService.getAllDocuments(ownerId, documentType, ownerType,  version, pageable);
       
        PagedModel<EntityModel<DocumentDto>> pagedModel = pagedResourcesAssembler.toModel(documentDtoPage);
        
@@ -79,9 +82,10 @@ public class DocumentController {
     public ResponseEntity<DocumentDto> uploadDocument(
             @Parameter(description = "A file for a documentType") @RequestParam("file") MultipartFile file,
             @RequestParam("documentType") DocumentType documentType,
+            @RequestParam("ownerType") OwnerType ownerType,
             @RequestParam("ownerId") Long ownerId) throws IOException{
         System.out.println("File "+file.getName());
-        return ResponseEntity.ok(fileStorageService.uploadDocument(file, documentType, ownerId));
+        return ResponseEntity.ok(fileStorageService.uploadDocument(file, documentType, ownerType, ownerId));
     }
 
     /**
@@ -94,8 +98,9 @@ public class DocumentController {
     @PostMapping(value = "/uploads", consumes = "multipart/form-data")
     public ResponseEntity<List<DocumentDto>> uploadDocumentsMiddleComplexHirarchic(@RequestParam("files") List<MultipartFile> files,
                                                                                    @RequestParam("documentType") DocumentType documentType,
+                                                                                   @RequestParam("ownerType") OwnerType ownerType,
                                                                                    @RequestParam("ownerId") Long ownerId) throws Exception{
-        return ResponseEntity.ok(fileStorageService.uploadDocuments(files, documentType, ownerId));
+        return ResponseEntity.ok(fileStorageService.uploadDocuments(files, documentType,ownerType, ownerId));
     }
 
 
@@ -103,17 +108,19 @@ public class DocumentController {
     @PostMapping(value = "/uploads/files", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<List<DocumentDto>> uploadDocuments(@RequestParam("files") List<MultipartFile> files,
                                                              @RequestParam("documentTypes") List<DocumentType> documentTypes,
+                                                             @RequestParam("ownerType") OwnerType ownerType,
                                                              @RequestParam("ownerId") Long ownerId) throws Exception{
-       return ResponseEntity.ok(fileStorageService.uploadDocuments(files, documentTypes, ownerId));
+       return ResponseEntity.ok(fileStorageService.uploadDocuments(files, documentTypes, ownerType, ownerId));
     }
 
 
     @PutMapping(consumes = "multipart/form-data")
     public ResponseEntity<DocumentDto> updateDocument(@RequestParam("documentId") Long documentId,
                                                       @RequestParam(value = "documentType") Optional<DocumentType> documentType,
+                                                      @RequestParam(value = "ownerType") Optional <OwnerType> ownerType,
                                                       @RequestParam(value = "ownerId") Optional<Long> ownerId,
                                                       @RequestParam(value = "file") Optional<MultipartFile> file) throws Exception {
-        return ResponseEntity.ok(fileStorageService.updateDocument(documentId, documentType, ownerId, file));
+        return ResponseEntity.ok(fileStorageService.updateDocument(documentId, documentType, ownerType , ownerId, file));
     }
 
     @PutMapping(value = "/{documentId}/archive")
@@ -121,11 +128,12 @@ public class DocumentController {
         return ResponseEntity.ok(fileStorageService.archiveDocument(documentId));
     }
 
-    @GetMapping("/owners/{ownerId}/{documentType}/{version}/download")
+    @GetMapping("/owners/{ownerId}/{ownerType}/{documentType}/{version}/download")
     public ResponseEntity<Resource> downloadDocument(@PathVariable("ownerId") Long ownerId,
                                                      @PathVariable("documentType") DocumentType documentType,
+                                                     @PathVariable("ownerType") OwnerType ownerType,
                                                      @PathVariable("version") Integer version) throws IOException{
-        Resource file = fileStorageService.downloadDocument(ownerId, documentType, version);
+        Resource file = fileStorageService.downloadDocument(ownerId, documentType,ownerType ,version);
         String fileContentType = Files.probeContentType(Paths.get(file.getURI()));
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(fileContentType))

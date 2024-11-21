@@ -2,6 +2,7 @@ package com.bytmasoft.dss.repository;
 
 import com.bytmasoft.dss.entity.Document;
 import com.bytmasoft.dss.enums.DocumentType;
+import com.bytmasoft.dss.enums.OwnerType;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
@@ -13,7 +14,7 @@ import java.util.List;
 @Component
 public class DocumentSpecification {
 
-      public Specification<Document> getDocumentsByDocumentTypeAndVersion(Long ownerId, DocumentType documentType, Integer version) {
+      public Specification<Document> getDocumentsByDocumentTypeAndVersion(Long ownerId, DocumentType documentType, OwnerType ownerType,  Integer version) {
 
         return (root, query, criteriaBuilder) -> {
 
@@ -27,6 +28,10 @@ public class DocumentSpecification {
                 predicates.add(criteriaBuilder.equal(root.get("documentType"), documentType));
             }
 
+            if(ownerType != null && !ownerType.toString().isEmpty() ) {
+                predicates.add(criteriaBuilder.equal(root.get("ownerType"), ownerType));
+            }
+
             if(version != null && version > 0) {
                 predicates.add(criteriaBuilder.equal(root.get("version"), version));
             }
@@ -36,7 +41,7 @@ public class DocumentSpecification {
         };
     }
 
-    public Specification<Document> getDocumentsOwnerListByDocumentTypeAndVersion(List<Long> ownerIDs, DocumentType documentType, Integer version) {
+    public Specification<Document> getDocumentsOwnerListByDocumentTypeAndVersion(List<Long> ownerIDs, DocumentType documentType, OwnerType ownerType, Integer version) {
 
         return (root, query, criteriaBuilder) -> {
 
@@ -49,6 +54,9 @@ public class DocumentSpecification {
 
             if(documentType != null && !documentType.toString().isEmpty() ) {
                 predicates.add(criteriaBuilder.equal(root.get("documentType"), documentType));
+            }
+            if(ownerType != null && !ownerType.toString().isEmpty() ) {
+                predicates.add(criteriaBuilder.equal(root.get("ownerType"), ownerType));
             }
 
             if(version != null && version > 0) {

@@ -2,6 +2,7 @@ package com.bytmasoft.dss.entity;
 
 import com.bytmasoft.common.entities.BaseEntity;
 import com.bytmasoft.dss.enums.DocumentType;
+import com.bytmasoft.dss.enums.OwnerType;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -22,8 +23,14 @@ public class Document extends BaseEntity implements Serializable {
     private String filePath;
     private Integer version;
 
+    @Column(nullable = false)
+    private Long schoolId;
+
     @Enumerated(EnumType.STRING)
     private DocumentType documentType;
+
+    @Enumerated(EnumType.STRING)
+    private OwnerType ownerType;
 
     private Long ownerId;
 

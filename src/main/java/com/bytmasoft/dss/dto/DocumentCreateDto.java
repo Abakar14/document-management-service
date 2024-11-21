@@ -14,6 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 @Builder
 public class DocumentCreateDto {
     private Long ownerId;
+    private Long schoolId;
     private MultipartFile document;
     private DocumentType documentType;
 }

@@ -6,6 +6,7 @@ import com.bytmasoft.dss.config.StorageProperties;
 import com.bytmasoft.dss.dto.DocumentDto;
 import com.bytmasoft.dss.entity.Document;
 import com.bytmasoft.dss.enums.DocumentType;
+import com.bytmasoft.dss.enums.OwnerType;
 import com.bytmasoft.dss.mapper.DocumentMapper;
 import com.bytmasoft.dss.repository.DocumentRepository;
 import com.bytmasoft.dss.repository.DocumentSpecification;
@@ -83,7 +84,7 @@ public class FileSystemStorageService {
         return documentMapper.documentToDto(getDocument(documentId));
     }
 
-    public DocumentDto uploadDocument(MultipartFile file, DocumentType documentType, Long ownerId) throws IOException {
+    public DocumentDto uploadDocument(MultipartFile file, DocumentType documentType, OwnerType ownerType, Long ownerId) throws IOException {
 
         fileValidationService.isSupportedFileType(file);
 
@@ -98,6 +99,7 @@ public class FileSystemStorageService {
                 .fileName(storedFileProperties.get("fileName"))
                 .documentType(documentType)
                 .ownerId(ownerId)
+                .ownerType(ownerType)
                 .originalFileName(storedFileProperties.get("originalFilename"))
                 .filePath(storedFileProperties.get("filePath"))
                .version(newVersion)
@@ -112,17 +114,17 @@ public class FileSystemStorageService {
     }
 
 
-    public List<DocumentDto> uploadDocuments(List<MultipartFile> files, DocumentType documentType, Long ownerId) throws IOException {
+    public List<DocumentDto> uploadDocuments(List<MultipartFile> files, DocumentType documentType, OwnerType ownerType,  Long ownerId) throws IOException {
         List<DocumentDto> documentDtos = new ArrayList<>();
         for (MultipartFile file : files) {
-           documentDtos.add(uploadDocument(file, documentType, ownerId));
+           documentDtos.add(uploadDocument(file, documentType, ownerType, ownerId));
         }
         return documentDtos;
     }
 
 
-    public List<DocumentDto> getAllDocumentVersions(Long ownerId, DocumentType documentType, Integer version) {
-        return documentRepository.findAll(documentSpecification.getDocumentsByDocumentTypeAndVersion(ownerId, documentType, version)).stream().map(documentMapper::documentToDto).collect(Collectors.toUnmodifiableList());
+    public List<DocumentDto> getAllDocumentVersions(Long ownerId, DocumentType documentType, OwnerType ownerType, Integer version) {
+        return documentRepository.findAll(documentSpecification.getDocumentsByDocumentTypeAndVersion(ownerId, documentType, ownerType, version)).stream().map(documentMapper::documentToDto).collect(Collectors.toUnmodifiableList());
 
     }
 
@@ -138,9 +140,9 @@ public class FileSystemStorageService {
                 .map(documentMapper::documentToDto);
     }
 
-    public Page<DocumentDto> getAllDocumentsOwners(List<Long> ownerIDs, DocumentType documentType, Integer version, Pageable pageable) {
+    public Page<DocumentDto> getAllDocumentsOwners(List<Long> ownerIDs, DocumentType documentType, OwnerType ownerType , Integer version, Pageable pageable) {
 
-        Specification<Document> specification = documentSpecification.getDocumentsOwnerListByDocumentTypeAndVersion(ownerIDs, documentType, version);
+        Specification<Document> specification = documentSpecification.getDocumentsOwnerListByDocumentTypeAndVersion(ownerIDs, documentType, ownerType, version);
        return documentRepository.findAll(specification, pageable).map(documentMapper::documentToDto);
 
     }
@@ -148,14 +150,14 @@ public class FileSystemStorageService {
 
 
 
-    public Page<DocumentDto> getAllDocuments(Long ownerId, DocumentType documentType, Integer version, Pageable pageable) {
-        Specification<Document> specification = documentSpecification.getDocumentsByDocumentTypeAndVersion(ownerId, documentType, version);
+    public Page<DocumentDto> getAllDocuments(Long ownerId, DocumentType documentType, OwnerType ownerType , Integer version, Pageable pageable) {
+        Specification<Document> specification = documentSpecification.getDocumentsByDocumentTypeAndVersion(ownerId, documentType, ownerType, version);
         return documentRepository.findAll(specification, pageable).map(documentMapper::documentToDto);
     }
 
 
-    public Resource downloadDocument(Long ownerId, DocumentType documentType, Integer version) throws IOException {
-        Document document = getDocument(ownerId, documentType, version);
+    public Resource downloadDocument(Long ownerId, DocumentType documentType, OwnerType ownerType,  Integer version) throws IOException {
+        Document document = getDocument(ownerId, documentType, ownerType, version);
         return loadFileAsResource(document.getFileName());
     }
 
@@ -169,11 +171,15 @@ public class FileSystemStorageService {
     // document_archive table to save all changes in it
 
 
-    public DocumentDto updateDocument(Long documentId, Optional<DocumentType> documentType, Optional<Long> ownerId, Optional<MultipartFile> file) throws IOException {
+    public DocumentDto updateDocument(Long documentId, Optional<DocumentType> documentType, Optional<OwnerType> ownerType,  Optional<Long> ownerId, Optional<MultipartFile> file) throws IOException {
 
         Document document = getDocument(documentId);
         if(documentType.isPresent()){
             document.setDocumentType(documentType.get());
+        }
+
+        if(ownerType.isPresent()){
+            document.setOwnerType(ownerType.get());
         }
         if(ownerId.isPresent()){
             document.setOwnerId(ownerId.get());
@@ -184,7 +190,7 @@ public class FileSystemStorageService {
         //3- move the original file name to new document
 
         if(file.isPresent()){
-            return this.uploadDocument(file.get(), document.getDocumentType(), document.getOwnerId());
+            return this.uploadDocument(file.get(), document.getDocumentType(), document.getOwnerType(), document.getOwnerId());
         }
 
         return documentMapper.documentToDto(documentRepository.save(document));
@@ -306,8 +312,8 @@ public class FileSystemStorageService {
 
     }
 
-    private Document getDocument(Long ownerId, DocumentType documentType,Integer version) {
-        return  documentRepository.findByOwnerIdAndDocumentTypeAndVersion(ownerId, documentType, version)
+    private Document getDocument(Long ownerId, DocumentType documentType, OwnerType ownerType, Integer version) {
+        return  documentRepository.findByOwnerIdAndDocumentTypeAndOwnerTypeAndVersion(ownerId, documentType, ownerType, version)
                 .orElseThrow(() -> new StorageFileNotFoundException("Document with ownerId: "+ownerId + " documentType: " +documentType+" and version: "+version +" not found"));
 
     }
@@ -402,7 +408,7 @@ public class FileSystemStorageService {
                 .orElseThrow(() -> new StorageFileNotFoundException("File " + filename + " not found"));
     }
 
-    public List<DocumentDto> uploadDocuments(List<MultipartFile> files, List<DocumentType> documentTypes, Long ownerId) throws IOException {
+    public List<DocumentDto> uploadDocuments(List<MultipartFile> files, List<DocumentType> documentTypes, OwnerType ownerType, Long ownerId) throws IOException {
 
         if(files.size() != documentTypes.size()){
             throw new IllegalArgumentException("Each file must have a corresponding document type.");
@@ -410,7 +416,7 @@ public class FileSystemStorageService {
 
         List<DocumentDto> documentDtos = new ArrayList<>();
         for(int i= 0; i < files.size(); i++){
-            documentDtos.add(uploadDocument(files.get(i), documentTypes.get(i), ownerId));
+            documentDtos.add(uploadDocument(files.get(i), documentTypes.get(i), ownerType, ownerId));
         }
 
         return documentDtos;

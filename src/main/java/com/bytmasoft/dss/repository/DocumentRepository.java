@@ -2,6 +2,7 @@ package com.bytmasoft.dss.repository;
 
 import com.bytmasoft.dss.entity.Document;
 import com.bytmasoft.dss.enums.DocumentType;
+import com.bytmasoft.dss.enums.OwnerType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -18,7 +19,7 @@ public interface DocumentRepository extends JpaRepository<Document, Long>, JpaSp
 
     List<Document> findByDocumentType(DocumentType documentType);
 
-    Optional<Document> findByOwnerIdAndDocumentTypeAndVersion(Long ownerId, DocumentType documentType, Integer version);
+    Optional<Document> findByOwnerIdAndDocumentTypeAndOwnerTypeAndVersion(Long ownerId, DocumentType documentType, OwnerType ownerType, Integer version);
 
     List<Document> findByOwnerIdAndDocumentType(Long ownerId, DocumentType documentType);
 
