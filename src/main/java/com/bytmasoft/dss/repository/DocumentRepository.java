@@ -21,7 +21,7 @@ public interface DocumentRepository extends JpaRepository<Document, Long>, JpaSp
 
     Optional<Document> findByOwnerIdAndDocumentTypeAndOwnerTypeAndVersion(Long ownerId, DocumentType documentType, OwnerType ownerType, Integer version);
 
-    List<Document> findByOwnerIdAndDocumentType(Long ownerId, DocumentType documentType);
+List<Document> findByOwnerIdAndDocumentTypeAndSchoolId(Long ownerId, DocumentType documentType, Long schoolId);
 
     Page<Document> findByOwnerIdIn(List<Long> ownerIDs, Pageable pageable);
    /* @Query("select d from Document d where d.ownerId in: ids")

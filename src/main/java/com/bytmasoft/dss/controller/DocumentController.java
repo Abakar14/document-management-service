@@ -83,9 +83,10 @@ public class DocumentController {
             @Parameter(description = "A file for a documentType") @RequestParam("file") MultipartFile file,
             @RequestParam("documentType") DocumentType documentType,
             @RequestParam("ownerType") OwnerType ownerType,
-            @RequestParam("ownerId") Long ownerId) throws IOException{
+            @RequestParam("ownerId") Long ownerId,
+            @RequestParam("schoolId") Long schoolId) throws IOException{
         System.out.println("File "+file.getName());
-        return ResponseEntity.ok(fileStorageService.uploadDocument(file, documentType, ownerType, ownerId));
+        return ResponseEntity.ok(fileStorageService.uploadDocument(file, documentType, ownerType, ownerId, schoolId));
     }
 
     /**
@@ -99,8 +100,9 @@ public class DocumentController {
     public ResponseEntity<List<DocumentDto>> uploadDocumentsMiddleComplexHirarchic(@RequestParam("files") List<MultipartFile> files,
                                                                                    @RequestParam("documentType") DocumentType documentType,
                                                                                    @RequestParam("ownerType") OwnerType ownerType,
-                                                                                   @RequestParam("ownerId") Long ownerId) throws Exception{
-        return ResponseEntity.ok(fileStorageService.uploadDocuments(files, documentType,ownerType, ownerId));
+                                                                                   @RequestParam("ownerId") Long ownerId,
+                                                                                   @RequestParam("schoolId") Long schoolId) throws Exception{
+        return ResponseEntity.ok(fileStorageService.uploadDocuments(files, documentType,ownerType, ownerId, schoolId));
     }
 
 
@@ -109,8 +111,9 @@ public class DocumentController {
     public ResponseEntity<List<DocumentDto>> uploadDocuments(@RequestParam("files") List<MultipartFile> files,
                                                              @RequestParam("documentTypes") List<DocumentType> documentTypes,
                                                              @RequestParam("ownerType") OwnerType ownerType,
-                                                             @RequestParam("ownerId") Long ownerId) throws Exception{
-       return ResponseEntity.ok(fileStorageService.uploadDocuments(files, documentTypes, ownerType, ownerId));
+                                                             @RequestParam("ownerId") Long ownerId,
+                                                             @RequestParam("schoolId") Long schoolId) throws Exception{
+       return ResponseEntity.ok(fileStorageService.uploadDocuments(files, documentTypes, ownerType, ownerId, schoolId));
     }
 
 
@@ -119,8 +122,9 @@ public class DocumentController {
                                                       @RequestParam(value = "documentType") Optional<DocumentType> documentType,
                                                       @RequestParam(value = "ownerType") Optional <OwnerType> ownerType,
                                                       @RequestParam(value = "ownerId") Optional<Long> ownerId,
+                                                      @RequestParam(value = "schoolId") Optional<Long> schoolId,
                                                       @RequestParam(value = "file") Optional<MultipartFile> file) throws Exception {
-        return ResponseEntity.ok(fileStorageService.updateDocument(documentId, documentType, ownerType , ownerId, file));
+        return ResponseEntity.ok(fileStorageService.updateDocument(documentId, documentType, ownerType , ownerId, file, schoolId));
     }
 
     @PutMapping(value = "/{documentId}/archive")

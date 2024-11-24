@@ -84,12 +84,12 @@ public class FileSystemStorageService {
         return documentMapper.documentToDto(getDocument(documentId));
     }
 
-    public DocumentDto uploadDocument(MultipartFile file, DocumentType documentType, OwnerType ownerType, Long ownerId) throws IOException {
+    public DocumentDto uploadDocument(MultipartFile file, DocumentType documentType, OwnerType ownerType, Long ownerId,Long schoolId) throws IOException {
 
         fileValidationService.isSupportedFileType(file);
 
         // Check if a previous version exists for this document type and owner
-        List<Document> existingDocuments = documentRepository.findByOwnerIdAndDocumentType(ownerId, documentType);
+        List<Document> existingDocuments = documentRepository.findByOwnerIdAndDocumentTypeAndSchoolId(ownerId, documentType, schoolId);
         int newVersion = existingDocuments.isEmpty() ? 1 : existingDocuments.get(existingDocuments.size() - 1).getVersion() + 1;
 
         Map<String, String> storedFileProperties = storeFile(file, documentType, ownerId, newVersion);
@@ -99,6 +99,7 @@ public class FileSystemStorageService {
                 .fileName(storedFileProperties.get("fileName"))
                 .documentType(documentType)
                 .ownerId(ownerId)
+                .schoolId(schoolId)
                 .ownerType(ownerType)
                 .originalFileName(storedFileProperties.get("originalFilename"))
                 .filePath(storedFileProperties.get("filePath"))
@@ -114,10 +115,10 @@ public class FileSystemStorageService {
     }
 
 
-    public List<DocumentDto> uploadDocuments(List<MultipartFile> files, DocumentType documentType, OwnerType ownerType,  Long ownerId) throws IOException {
+    public List<DocumentDto> uploadDocuments(List<MultipartFile> files, DocumentType documentType, OwnerType ownerType,  Long ownerId, Long schoolId) throws IOException {
         List<DocumentDto> documentDtos = new ArrayList<>();
         for (MultipartFile file : files) {
-           documentDtos.add(uploadDocument(file, documentType, ownerType, ownerId));
+           documentDtos.add(uploadDocument(file, documentType, ownerType, ownerId, schoolId));
         }
         return documentDtos;
     }
@@ -171,7 +172,7 @@ public class FileSystemStorageService {
     // document_archive table to save all changes in it
 
 
-    public DocumentDto updateDocument(Long documentId, Optional<DocumentType> documentType, Optional<OwnerType> ownerType,  Optional<Long> ownerId, Optional<MultipartFile> file) throws IOException {
+    public DocumentDto updateDocument(Long documentId, Optional<DocumentType> documentType, Optional<OwnerType> ownerType,  Optional<Long> ownerId, Optional<MultipartFile> file, Optional<Long> schoolId) throws IOException {
 
         Document document = getDocument(documentId);
         if(documentType.isPresent()){
@@ -184,13 +185,16 @@ public class FileSystemStorageService {
         if(ownerId.isPresent()){
             document.setOwnerId(ownerId.get());
         }
+        if(schoolId.isPresent()){
+            document.setSchoolId(schoolId.get());
+        }
         //TODO build the logic if the file not exisit i need to change following
         //1- change the existing file name with new info
         //2- move the file to new filepath
         //3- move the original file name to new document
 
         if(file.isPresent()){
-            return this.uploadDocument(file.get(), document.getDocumentType(), document.getOwnerType(), document.getOwnerId());
+            return this.uploadDocument(file.get(), document.getDocumentType(), document.getOwnerType(), document.getOwnerId(), document.getSchoolId());
         }
 
         return documentMapper.documentToDto(documentRepository.save(document));
@@ -408,7 +412,7 @@ public class FileSystemStorageService {
                 .orElseThrow(() -> new StorageFileNotFoundException("File " + filename + " not found"));
     }
 
-    public List<DocumentDto> uploadDocuments(List<MultipartFile> files, List<DocumentType> documentTypes, OwnerType ownerType, Long ownerId) throws IOException {
+    public List<DocumentDto> uploadDocuments(List<MultipartFile> files, List<DocumentType> documentTypes, OwnerType ownerType, Long ownerId, Long schoolId) throws IOException {
 
         if(files.size() != documentTypes.size()){
             throw new IllegalArgumentException("Each file must have a corresponding document type.");
@@ -416,7 +420,7 @@ public class FileSystemStorageService {
 
         List<DocumentDto> documentDtos = new ArrayList<>();
         for(int i= 0; i < files.size(); i++){
-            documentDtos.add(uploadDocument(files.get(i), documentTypes.get(i), ownerType, ownerId));
+            documentDtos.add(uploadDocument(files.get(i), documentTypes.get(i), ownerType, ownerId, schoolId));
         }
 
         return documentDtos;
