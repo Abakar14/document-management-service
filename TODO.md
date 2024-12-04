@@ -9,6 +9,8 @@
 - [ ] save Object DocumentResponse in Database
 - [ ] Bei download Request we take the filename and look for their path and return the file as response
 - [ ] use pages for all endpoints with a mount of data
+- [ ] create some interface to take a picture with laptop Camera or usb Camera
+- [ ] On upload change the profile picture and resize the size of it. 
 
 
 
