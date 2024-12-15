@@ -63,3 +63,5 @@ file:
                 - docx
                 - jpg
                 - png
+                - image/jpeg
+                - pdf

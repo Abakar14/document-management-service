@@ -58,7 +58,7 @@ logging:
 file:
     storage:
         upload:
-            location: /home/abakar/programming/git_repos/dss/storage
+            location: ${FILE_STORAGE_LOCATION:/app/storage} #Make the storage path configurable using environment variables,
         max-size: 10MB
         document:
             supportedFileTypes:
